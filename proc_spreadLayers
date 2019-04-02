@@ -1,0 +1,110 @@
+function [L1spread,L1perc_spread,L23spread,L23perc_spread,L5spread,L5perc_spread] = proc_spreadLayers(opticaldata,L1b,L23b,L5b)
+%takes the data put into the nice array by importNPlex and finds the spread
+%of excitation atevery time point
+
+
+bin_od = -0.0015>opticaldata>0.0015;
+%converts the binarized no noise into a double with the true values
+rn = bin_od.*opticaldata;
+for i = 1:400
+    t = bin_od(:,:,i).*L1b;
+    %finds the boundaries of the excitation  - from the binary we created
+    %before
+    b = bwboundaries(t,'noholes');
+    %finds the length of all the boundaries and finds the maximum
+    z = cellfun('length', b);
+    if length(z)>0
+    for s = 1:length(z)
+        x = b(s);x=x{:};
+        sz(s,1) = polyarea(x(:,1),x(:,2));
+    end
+    ind = find(sz==max(sz));
+    else
+        ind=NaN;
+    end
+    try
+        %makes it useable
+    sp = b(ind);sp = sp{:};
+    %find the area within those boundaries, then multiplies (12.574 * pixel
+    %number = um^2)
+    L1spread(i,1) = 12.574* polyarea(sp(:,1), sp(:,2));
+    catch
+        %if the spread is empty it will give 0
+        L1spread(i,1) = 0;
+    end
+end
+
+L1numavailable = sum(sum(L1b));
+L1numavailable = L1numavailable*12.574;
+L1perc_spread = L1spread/L1numavailable;
+
+%Layer23
+for i = 1:400
+    t = bin_od(:,:,i).*L23b;
+    %finds the boundaries of the excitation  - from the binary we created
+    %before
+    b = bwboundaries(t,'noholes');
+    %finds the length of all the boundaries and finds the maximum
+    z = cellfun('length', b);
+    if length(z)>0
+    for s = 1:length(z)
+        x = b(s);x=x{:};
+        sz(s,1) = polyarea(x(:,1),x(:,2));
+    end
+    ind = find(sz==max(sz));
+    else
+        ind=NaN;
+    end
+    try
+        %makes it useable
+    sp = b(ind);sp = sp{:};
+    %find the area within those boundaries, then multiplies (12.574 * pixel
+    %number = um^2)
+    L23spread(i,1) = 12.574* polyarea(sp(:,1), sp(:,2));
+    catch
+        %if the spread is empty it will give 0
+        L23spread(i,1) = 0;
+    end
+end
+
+L23numavailable = sum(sum(L23b));
+L23numavailable = L23numavailable*12.574;
+L23perc_spread = L23spread/L23numavailable;
+
+%Layer5
+for i = 1:400
+    t = bin_od(:,:,i).*L5b;
+    %finds the boundaries of the excitation  - from the binary we created
+    %before
+    b = bwboundaries(t,'noholes');
+    %finds the length of all the boundaries and finds the maximum
+    z = cellfun('length', b);
+    if length(z)>0
+    for s = 1:length(z)
+        x = b(s);x=x{:};
+        sz(s,1) = polyarea(x(:,1),x(:,2));
+    end
+    ind = find(sz==max(sz));
+    else
+        ind=NaN;
+    end
+    try
+        %makes it useable
+    sp = b(ind);sp = sp{:};
+    %find the area within those boundaries, then multiplies (12.574 * pixel
+    %number = um^2)
+    L5spread(i,1) = 12.574* polyarea(sp(:,1), sp(:,2));
+    catch
+        %if the spread is empty it will give 0
+        L5spread(i,1) = 0;
+    end
+end
+
+L5numavailable = sum(sum(L5b));
+L5numavailable = L5numavailable*12.574;
+L5perc_spread = L5spread/L5numavailable;
+
+end
+
+
+
