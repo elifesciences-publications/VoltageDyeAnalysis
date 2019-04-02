@@ -1,0 +1,45 @@
+function [mlog,Log] = CroppingVSD(fid)
+
+load('map.mat');
+
+% fn = fullfile(uigetdir, uigetfile('*.da'));
+fn = fopen(fid,'r');
+data = fread(fn, 'uint16');
+%data starts here
+data = data(2561:end);
+%there will be extra stuff, uneeded at end. 600 frames is the length of the
+%movie.
+sz = 600*(128*128);
+data = data(1:sz);
+fclose(fn);
+
+
+%Getting image
+%get data by pixel
+for j =1:16384
+    opt2(:,j) = data((j-1)*600+1:j*600);
+end
+
+%putting in 3D matrix in pixel order
+for i =1:128
+    for j = 1:128
+        for k = 1
+            arranged(i,j,k) = opt2(k,((i-1)*128+1)+(j-1));
+        end
+    end
+end
+
+av(:,:,1) = imresize(arranged(:,:,1),0.5,'bilinear');
+vsd_image = mat2gray(av(:,:,1));
+
+b=imresize(vsd_image,8);
+imshow(b)
+hold on
+
+ROI = roipoly;
+Log = imresize(ROI,0.25,'bilinear');
+mlog = map(Log);
+
+
+
+
