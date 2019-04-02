@@ -1,0 +1,88 @@
+function [opticaldata] = Cropped_OD(mlog,Log,fid)
+
+load('map.mat');
+
+% fn = fullfile(uigetdir, uigetfile('*.da'));
+fn = fopen(fid,'r');
+data = fread(fn, 'uint16');
+%data starts here
+data = data(2561:end);
+%there will be extra stuff, uneeded at end. 600 frames is the length of the
+%movie.
+sz = 600*(128*128);
+data = data(1:sz);
+fclose(fn);
+for j =1:16384
+    opt2(:,j) = data((j-1)*600+1:j*600);
+end
+
+opt2 = opt2(1:450,Log);
+for j =1:size(opt2,2)
+    %divide by RLIs
+    opt2(:,j) = opt2(:,j)/mean(opt2(6:11,j));
+    %change the BL for when you are stiming
+    BL = mean(opt2(100:160,j));
+    
+    for k = 1:450
+        opt2(k,j)=(opt2(k,j)-BL)/BL;
+    end
+    if sum(opt2(:,j),1)==0
+        o2(1,j) = 0;
+    else
+        o2(1,j) =1;
+    end
+end
+%averages all the pixel data (removing the time of stim) to get a double
+%exponential fit
+% q=mean(opt2(:,logical(o2)),2);
+t=[1:1:450]';
+
+% ft = fit(t,q,'exp2','Exclude',[165:250]); %getting that fit...
+
+%Preforming a subtraction
+opt2_corrt = zeros(450,size(opt2,2));
+opt2_corrt = zeros(450,size(opt2,2));
+parfor k = 1:size(opt2,2)
+    if o2(k)
+        try
+        ft = fit(t,opt2(:,k),'exp2','Exclude',[160:200]);
+        for i = 1:450
+            %corr is the correction; ie the value of the exp fit at the given time
+            %value.
+            corr = ft.a*exp(ft.b*i)+ft.c*exp(ft.d*i);
+            opt2_corrt(i,k) = opt2(i,k) - corr;
+        end
+    end
+    end
+end
+
+for j =1:size(opt2_corrt,2)
+    opt2_corrt(:,j) = opt2_corrt(:,j)*o2(1,j);
+end
+
+%putting in 3D matrix in pixel order
+for i =1:128
+    for j = 1:128
+        try
+            ind = find(map(i,j)==mlog);
+            
+            for k = 1:350
+                arranged(i,j,k) = opt2_corrt(k,ind);
+            end
+        catch
+            arranged(i,j,1:350)=0;
+        end
+    end
+end
+
+%2x2 binning
+for i = 1:350
+    av(:,:,i) = imresize(arranged(:,:,i),0.5,'bilinear');
+end
+opticaldata = av;
+end
+
+
+
+
+
