@@ -1,0 +1,109 @@
+function [ L1b,L23b,L5b ] = FindCorticalLayers( vsd_image )
+
+
+b=imresize(vsd_image,8);
+imshow(b)
+hold on
+disp('draw CC')
+h = imfreehand('Closed',false);
+CC = getPosition(h);
+disp('draw L1')
+i = imfreehand('Closed',false);
+L1 = getPosition(i);
+disp('draw midline')
+j = imfreehand('Closed',false);
+ML = getPosition(j);
+
+for i = 1:size(CC,1)
+    for j=1:size(L1,1)
+        d(j,1) = pdist([CC(i,:);L1(j,:)],'euclidean');
+    end
+    CCL1(i,1) = min(d);
+    Layer5Z(i,1) = CC(i,1);
+    if L1(1,2)>CC(1,2)
+        Layer5Z(i,2) = CC(i,2)+0.2*CCL1(i,1);
+    else
+        Layer5Z(i,2) = CC(i,2)-0.2*CCL1(i,1);
+    end
+    clear d
+end
+
+for i = 1:size(L1,1)
+    for j=1:size(CC,1)
+        d(j,1) = pdist([L1(i,:);CC(j,:)],'euclidean');
+    end
+    L1CC(i,1) = min(d);
+    Layer23Z(i,1) = L1(i,1);
+    if L1(1,2) > CC(1,2)
+        Layer23Z(i,2) = L1(i,2)-0.1*L1CC(i,1);
+    else
+        Layer23Z(i,2) = L1(i,2)+0.1*L1CC(i,1);
+    end
+    clear d
+end
+for i = 1:size(L1,1)
+    for j=1:size(ML,1)
+        d(j,1) = pdist([L1(i,:);ML(j,:)],'euclidean');
+    end
+    L1ML(i,1) = min(d);
+    Layer1Z(i,1) = L1(i,1);
+    if L1(1,2)>ML(1,2)
+        Layer1Z(i,2) = L1(i,2)-0.2*L1ML(i,1);
+    else
+        Layer1Z(i,2) = L1(i,2)+0.2*L1ML(i,1);
+    end
+    clear d
+end
+for i = 1:size(ML,1)
+    for j=1:size(L1,1)
+        d(j,1) = pdist([ML(i,:);L1(j,:)],'euclidean');
+    end
+    MLL1(i,1) = min(d);
+    MZ(i,1) = ML(i,1);
+    if L1(1,2)>ML(1,2)
+        MZ(i,2) = ML(i,2)+0.2*MLL1(i,1);
+    else
+        MZ(i,2) = ML(i,2)-0.2*MLL1(i,1);
+    end
+    clear d
+end
+rMZ = round(MZ/8);
+rLayer1Z = round(Layer1Z/8);
+rLayer23Z = round(Layer23Z/8);
+rLayer5Z = round(Layer5Z/8);
+rCC = round(CC/8);
+
+for i = 1:64
+    for j = 1:64
+        if pdist([rCC(1,:);rLayer5Z(1,:)],'euclidean')>pdist([rCC(end,:);rLayer5Z(1,:)],'euclidean')
+            L5b(i,j) = inpolygon(i,j,[rCC(:,1);rLayer5Z(:,1)],[rCC(:,2);rLayer5Z(:,2)]);
+        else
+            L5b(i,j) = inpolygon(i,j,[rCC(:,1);flip(rLayer5Z(:,1))],[rCC(:,2);flip(rLayer5Z(:,2))]);
+        end
+        if pdist([rLayer23Z(1,:);rLayer5Z(1,:)],'euclidean')>pdist([rLayer23Z(end,:);rLayer5Z(1,:)],'euclidean')
+            L23b(i,j) = inpolygon(i,j,[rLayer23Z(:,1);rLayer5Z(:,1)],[rLayer23Z(:,2);rLayer5Z(:,2)]);
+        else
+            L23b(i,j) = inpolygon(i,j,[rLayer23Z(:,1);flip(rLayer5Z(:,1))],[rLayer23Z(:,2);flip(rLayer5Z(:,2))]);
+        end
+        if pdist([rLayer1Z(1,:);rMZ(1,:)],'euclidean')>pdist([rLayer1Z(end,:);rMZ(1,:)],'euclidean')
+            
+            L1b(i,j) = inpolygon(i,j,[rLayer1Z(:,1);rMZ(:,1)],[rLayer1Z(:,2);rMZ(:,2)]);
+        else
+            L1b(i,j) = inpolygon(i,j,[rLayer1Z(:,1);flip(rMZ(:,1))],[rLayer1Z(:,2);flip(rMZ(:,2))]);
+        end
+        if L23b(i,j)
+            plot(i*8,j*8,'ro');
+        end
+        if L5b(i,j)
+            plot(i*8,j*8,'go');
+        end
+        if L1b(i,j)
+            plot(i*8,j*8,'yo');
+        end
+    end
+end
+
+save('Layers','L1b','L23b','L5b');
+
+end
+
