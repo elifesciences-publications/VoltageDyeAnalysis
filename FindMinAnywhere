@@ -1,0 +1,25 @@
+function [ maxresponse ] = FindMinAnywhere( opticaldata )
+
+%Chaneg the rtime based on when the stim was given
+rtime = opticaldata(:,:,185:225);
+
+for i = 1:41
+    temp = reshape(rtime(:,:,i),[4096,1]);
+    mns = sort(temp); mns = mns(1:40);
+    for j = 1:20
+        [r,c]=find(rtime(:,:,i)==mns(j));
+        try
+        vals(j,1) = nanmean([rtime(r+1,c-1,i),rtime(r-1,c-1,i),rtime(r,c-1,i),...
+            rtime(r+1,c+1,i),rtime(r-1,c+1,i),rtime(r,c+1,i),rtime(r+1,c,i),...
+            rtime(r-1,c,i),rtime(r,c,i)]);
+        catch
+            vals(j,1) = NaN;
+        end
+    end
+    mot(i,1) = min(vals);
+end
+
+maxresponse = abs(min(mot));
+
+end
+
