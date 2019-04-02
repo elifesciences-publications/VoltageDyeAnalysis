@@ -1,0 +1,4 @@
+dadir = dir('*.da');
+fid = dadir(1).name;
+[mlog,Log] = CroppingVSD(fid);
+save('Logs','mlog','Log');
