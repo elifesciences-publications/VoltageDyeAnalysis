@@ -1,0 +1,14 @@
+dadir = dir('*.da');
+load('Logs.mat');
+
+for list = 1:length(dadir)
+    disp(strcat('Starting_', dadir(list).name));
+    
+    opticaldata = Cropped_OD(mlog,Log,dadir(list).name);
+    [ maxresponse ] = FindMinAnywhere( opticaldata );
+    [spread,perc_spread] = proc_spread(opticaldata);
+    save(strcat(sprintf(dadir(list).name(1:end-3)),'_array'), 'opticaldata');
+    save(strcat(dadir(list).name(1:end-3),'_spread'), 'spread','perc_spread');
+    save(strcat(sprintf(dadir(list).name(1:end-3)),'MR'), 'maxresponse');
+    
+end
