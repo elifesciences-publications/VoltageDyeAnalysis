@@ -1,0 +1,67 @@
+function [ L1maxresponse,L23maxresponse,L5maxresponse ] = FindMinLayers( opticaldata,L1b,L23b,L5b )
+
+rtime = opticaldata(:,:,185:215);
+
+for i = 1:30
+    layer = rtime(:,:,i);
+    layer = layer.*L1b;
+    temp = reshape(layer,[4096,1]);
+    mns = sort(temp); mns = mns(1:40);
+    for j = 1:20
+        [r,c]=find(rtime(:,:,i)==mns(j));
+        try
+        vals(j,1) = nanmean([rtime(r+1,c-1,i),rtime(r-1,c-1,i),rtime(r,c-1,i),...
+            rtime(r+1,c+1,i),rtime(r-1,c+1,i),rtime(r,c+1,i),rtime(r+1,c,i),...
+            rtime(r-1,c,i),rtime(r,c,i)]);
+        catch
+            vals(j,1) = NaN;
+        end
+    end
+    mot(i,1) = min(vals);
+end
+
+L1maxresponse = abs(min(mot));
+
+%Layer223
+for i = 1:30
+    layer = rtime(:,:,i);
+    layer = layer.*L23b;
+    temp = reshape(layer,[4096,1]);
+    mns = sort(temp); mns = mns(1:40);
+    for j = 1:20
+        [r,c]=find(rtime(:,:,i)==mns(j));
+        try
+        vals(j,1) = nanmean([rtime(r+1,c-1,i),rtime(r-1,c-1,i),rtime(r,c-1,i),...
+            rtime(r+1,c+1,i),rtime(r-1,c+1,i),rtime(r,c+1,i),rtime(r+1,c,i),...
+            rtime(r-1,c,i),rtime(r,c,i)]);
+        catch
+            vals(j,1) = NaN;
+        end
+    end
+    mot(i,1) = min(vals);
+end
+
+L23maxresponse = abs(min(mot));
+
+%Layer5
+for i = 1:30
+    layer = rtime(:,:,i);
+    layer = layer.*L5b;
+    temp = reshape(layer,[4096,1]);
+    mns = sort(temp); mns = mns(1:40);
+    for j = 1:20
+        [r,c]=find(rtime(:,:,i)==mns(j));
+        try
+        vals(j,1) = nanmean([rtime(r+1,c-1,i),rtime(r-1,c-1,i),rtime(r,c-1,i),...
+            rtime(r+1,c+1,i),rtime(r-1,c+1,i),rtime(r,c+1,i),rtime(r+1,c,i),...
+            rtime(r-1,c,i),rtime(r,c,i)]);
+        catch
+            vals(j,1) = NaN;
+        end
+    end
+    mot(i,1) = min(vals);
+end
+
+L5maxresponse = abs(min(mot));
+end
+
