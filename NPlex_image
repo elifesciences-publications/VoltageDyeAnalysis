@@ -1,0 +1,35 @@
+function vsd_image = NPlex_image(fn)
+%Import a .da file from Neuroplex (128x128 sCmos camera) and make image
+
+% fn = fullfile(uigetdir, uigetfile('*.da'));
+fid = fopen(fn,'r');
+data = fread(fid, 'uint16');
+%data starts here
+data = data(2561:end);
+%there will be extra stuff, uneeded at end. 600 frames is the length of the
+%movie.
+sz = 600*(128*128);
+data = data(1:sz);
+
+%get data by pixel
+for j =1:16384
+    opt2(:,j) = data((j-1)*600+1:j*600);
+end
+
+%putting in 3D matrix in pixel order
+for i =1:128
+    for j = 1:128
+        for k = 1
+            arranged(i,j,k) = opt2(k,((i-1)*128+1)+(j-1));
+        end
+    end
+end
+
+%2x2 binning
+
+    av(:,:,1) = imresize(arranged(:,:,1),0.5,'bilinear');
+
+
+vsd_image = mat2gray(av(:,:,1));
+
+fclose(fid);
